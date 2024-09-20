@@ -4,6 +4,7 @@ import (
 	db "admin_user_login/DB"
 	middleware "admin_user_login/Middleware"
 	models "admin_user_login/Models"
+	"fmt"
 	"log"
 	"regexp"
 
@@ -19,8 +20,7 @@ type AdminResponse struct {
 var errors models.InvalidErr
 
 func AdminHome(c *fiber.Ctx) error {
-	c.Set("Cache-Contro", "no-cache,no-store,must-revalidate")
-	c.Set("Pragma", "no-cache")
+	c.Set("Cache-Control", "no-cache,no-store,must-revalidate")
 	c.Set("Expires", "0")
 
 	ok := middleware.ValidateCookie(c)
@@ -49,9 +49,14 @@ func AdminHome(c *fiber.Ctx) error {
 		Users:   Collect,
 		Invalid: errors,
 	}
-	return c.Render("admin", fiber.Map{
+	fmt.Println("Rendering admin")
+	err = c.Render("admin", fiber.Map{
 		"title": result,
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
 
 }
 
@@ -147,7 +152,7 @@ func AdminDelete(c *fiber.Ctx) error {
 	}
 	email := c.Query("Email")
 
-	if err := db.Db.Exec("DELETE FROM users email = ?", email).Error; err != nil {
+	if err := db.Db.Exec("DELETE FROM users WHERE email = $1", email).Error; err != nil {
 		log.Fatal("Could not fetch details", err)
 	}
 	return c.Redirect("/admin", fiber.StatusFound)
@@ -155,5 +160,5 @@ func AdminDelete(c *fiber.Ctx) error {
 
 func AdminLogout(c *fiber.Ctx) error {
 	middleware.DeleteCookie(c)
-	return c.Redirect("/", fiber.StatusOK)
+	return c.Redirect("/", fiber.StatusFound)
 }

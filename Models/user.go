@@ -10,6 +10,13 @@ type User struct {
 	Role     string `gorm:"not null;default:user"`
 }
 
+type Admin struct {
+	gorm.Model
+	AdminName string `gorm:"not null"`
+	Email     string `gorm:"unique"`
+	Password  string `gorm:"not null"`
+}
+
 type InvalidErr struct {
 	NameError     string
 	EmailError    string

@@ -25,13 +25,13 @@ func main() {
 	app.Get("/home", handlers.Home)
 	app.Get("/logout", handlers.Logout)
 
-	// //Admin
+	//Admin
 	app.Get("/admin", handlers.AdminHome)
 	app.Post("/admin", handlers.AdminAddUser)
 	app.Get("adminupdate", handlers.AdminUpdate)
 	app.Post("adminupdatepost", handlers.AdminUpdatePost)
 	app.Get("/admindelete", handlers.AdminDelete)
-	app.Get("/adminlogou", handlers.AdminLogout)
+	app.Get("/adminlogout", handlers.AdminLogout)
 	fmt.Println("Server started at :8080")
 	app.Listen(":8080")
 }

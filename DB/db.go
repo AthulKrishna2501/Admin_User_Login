@@ -26,6 +26,7 @@ func InitDatabase() {
 		return
 	}
 	err = Db.AutoMigrate(&models.User{})
+	Db.AutoMigrate(&models.Admin{})
 	if err != nil {
 		fmt.Println("Error in automigrating", err)
 		return
