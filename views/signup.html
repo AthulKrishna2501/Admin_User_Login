@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
             background-color: #f7f9fc;
             color: #4a4a4a;
         }
+
         .container {
             margin-top: 50px;
             padding: 30px;
@@ -19,14 +21,17 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 40%;
         }
+
         .header {
             color: #6c63ff;
         }
+
         .form-control {
             border-radius: 10px;
             padding: 10px;
             border: 1px solid #ddd;
         }
+
         .btn-primary {
             background-color: #6c63ff;
             border: none;
@@ -35,15 +40,32 @@
             border-radius: 10px;
             font-size: 16px;
         }
+
         .btn-primary:hover {
-            background-color: #5343cc;
+            background-color: #000000;
         }
+
         .error-message {
             color: #e74c3c;
             font-size: 14px;
         }
+
+        .login-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .login-link a {
+            color: #6c63ff;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="row justify-content-center">
@@ -68,14 +90,20 @@
                     </div>
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" placeholder="Confirm your password" required>
+                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword"
+                            placeholder="Confirm your password" required>
                         <!-- Error message for password -->
                         <p class="error-message">{{.PasswordError}}</p>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
                 </form>
+                <!-- Already have an account? -->
+                <div class="login-link mt-3">
+                    <p>Already have an account? <a href="/">Log in</a></p>
+                </div>
             </div>
         </div>
     </div>
 </body>
+
 </html>

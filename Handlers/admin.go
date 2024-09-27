@@ -6,9 +6,9 @@ import (
 	models "admin_user_login/Models"
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminResponse struct {
@@ -17,10 +17,15 @@ type AdminResponse struct {
 	Invalid models.InvalidErr
 }
 
+type AdminSearch struct {
+	UserList    []models.User
+	SearchError string
+}
+
 var errors models.InvalidErr
 
 func AdminHome(c *fiber.Ctx) error {
-	c.Set("Cache-Control", "no-cache,no-store,must-revalidate")
+	c.Set("Cache-Control", "no-cache, no-store")
 	c.Set("Expires", "0")
 
 	ok := middleware.ValidateCookie(c)
@@ -51,6 +56,9 @@ func AdminHome(c *fiber.Ctx) error {
 	}
 	fmt.Println("Rendering admin")
 	err = c.Render("admin", fiber.Map{
+		// "Name":    result.Name,
+		// "Users":   result.Users,
+		// "Invalid": result.Invalid,
 		"title": result,
 	})
 	if err != nil {
@@ -60,8 +68,30 @@ func AdminHome(c *fiber.Ctx) error {
 
 }
 
+// func AdminSearchUser(c *fiber.Ctx) error {
+// 	var userName []models.User
+
+// 	query := db.Db.Where("user_name LIKE ?", "%"+c.FormValue("Username")+"%")
+// 	query.Find(&userName)
+// 	data := AdminSearch{
+// 		UserList: userName,
+// 	}
+// 	if len(userName) == 0 {
+// 		data.SearchError = "No User Found"
+// 		return c.Render("/admin", fiber.Map{
+// 			"SearchError": data.SearchError,
+// 		})
+// 	}
+// 	return nil
+
+// }
 func AdminAddUser(c *fiber.Ctx) error {
-	c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Set("Cache-Control", "no-cache, no-store")
+	c.Set("Expires", "0")
+	return c.Render("adduser", fiber.StatusOK)
+}
+func AdminAddUserPost(c *fiber.Ctx) error {
+	c.Set("Cache-Control", "no-cache, no-store")
 	c.Set("Pragma", "no-cache")
 	c.Set("Expires", "0")
 
@@ -71,40 +101,38 @@ func AdminAddUser(c *fiber.Ctx) error {
 		return c.Redirect("/", fiber.StatusOK)
 	}
 
-	userName := c.FormValue("Name")
-	userEmail := c.FormValue("Email")
-	userPassword := c.FormValue("Password")
-
-	pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-	regex := regexp.MustCompile(pattern)
-	if !regex.MatchString(userEmail) {
-		errors.EmailError = "Email not in the correct format"
-		return c.Redirect("/admin", fiber.StatusFound)
-	}
+	userName := c.FormValue("name")
+	userEmail := c.FormValue("email")
+	userPassword := c.FormValue("password")
 
 	var count int
-	if err := db.Db.Raw("SELECT COUNT(*) FROM users WHERE email=$1", userEmail).Scan(&count).Error; err != nil {
+
+	if err := db.Db.Raw("SELECT COUNT(*) FROM users WHERE email = $1", userEmail).Scan(&count).Error; err != nil {
 		log.Fatal(err)
 		return c.Redirect("/admin", fiber.StatusFound)
 	}
+
 	if count > 0 {
-		errors.Err = "User already exists"
-		return c.Redirect("/admin", fiber.StatusFound)
+		fmt.Println("User already exists")
+		return c.Render("adduser", fiber.Map{
+			"Message": "Aldready exits",
+		})
 	}
 
-	var userRole string
-	if c.FormValue("checkbox") == "on" {
-		userRole = "admin"
-	} else {
-		userRole = "user"
-	}
-
-	if err := db.Db.Exec("INSERT INTO users (user_name, email, password, user_role) VALUES($1, $2, $3, $4)", userName, userEmail, userPassword, userRole).Error; err != nil {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userPassword), bcrypt.DefaultCost)
+	if err != nil {
 		log.Fatal(err)
-		return c.Redirect("/admin", fiber.StatusFound)
+		return c.Redirect("/adminAddUser", fiber.StatusFound)
 	}
+
+	if err := db.Db.Exec("INSERT INTO users (user_name, email, password) VALUES ($1, $2, $3)", userName, userEmail, string(hashedPassword)).Error; err != nil {
+		log.Fatal(err)
+		return c.Redirect("/adminAddUser", fiber.StatusFound)
+	}
+
 	return c.Redirect("/admin", fiber.StatusFound)
 }
+
 func AdminUpdate(c *fiber.Ctx) error {
 	c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Set("Pragma", "no-cache")
@@ -115,6 +143,8 @@ func AdminUpdate(c *fiber.Ctx) error {
 	}
 	username := c.Query("Username")
 	email := c.Query("Email")
+	log.Println("Received Username:", username)
+	log.Println("Received Email:", email)
 	return c.Render("updateuser", fiber.Map{
 		"UserName": username,
 		"Email":    email,
@@ -130,10 +160,13 @@ func AdminUpdatePost(c *fiber.Ctx) error {
 	ok := middleware.ValidateCookie(c)
 	if !ok {
 		return c.Redirect("/", fiber.StatusOK)
+
 	}
+	fmt.Println("HIII")
 	email := c.Query("Email")
 	userName := c.FormValue("Name")
-	if err := db.Db.Exec("UPDATE users SET user_name = $1 where email = $2", userName, email).Error; err != nil {
+	log.Println("Received email:", email, "and new username:", userName)
+	if err := db.Db.Exec("UPDATE users SET user_name = $1 WHERE email = $2", userName, email).Error; err != nil {
 		log.Fatal(err)
 
 	}

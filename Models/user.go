@@ -35,3 +35,7 @@ type UserDetails struct {
 	UserName string
 	Email    string
 }
+
+type AdminError struct{
+	Message string
+}

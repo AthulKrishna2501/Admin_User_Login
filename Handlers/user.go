@@ -13,6 +13,9 @@ import (
 )
 
 func Signup(c *fiber.Ctx) error {
+	c.Set("Cache-Control", "no-store")
+	c.Set("Expires", "0")
+
 
 	if middleware.ValidateCookie(c) {
 
@@ -86,7 +89,7 @@ func SignupPost(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	c.Set("Cache-Control", "no-store")
+	c.Set("Cache-Control", "no-cache, no-store")
 	c.Set("Expires", "0")
 
 	if middleware.ValidateCookie(c) {
