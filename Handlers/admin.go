@@ -56,9 +56,6 @@ func AdminHome(c *fiber.Ctx) error {
 	}
 	fmt.Println("Rendering admin")
 	err = c.Render("admin", fiber.Map{
-		// "Name":    result.Name,
-		// "Users":   result.Users,
-		// "Invalid": result.Invalid,
 		"title": result,
 	})
 	if err != nil {
@@ -68,28 +65,15 @@ func AdminHome(c *fiber.Ctx) error {
 
 }
 
-// func AdminSearchUser(c *fiber.Ctx) error {
-// 	var userName []models.User
-
-// 	query := db.Db.Where("user_name LIKE ?", "%"+c.FormValue("Username")+"%")
-// 	query.Find(&userName)
-// 	data := AdminSearch{
-// 		UserList: userName,
-// 	}
-// 	if len(userName) == 0 {
-// 		data.SearchError = "No User Found"
-// 		return c.Render("/admin", fiber.Map{
-// 			"SearchError": data.SearchError,
-// 		})
-// 	}
-// 	return nil
-
-// }
 func AdminAddUser(c *fiber.Ctx) error {
 	c.Set("Cache-Control", "no-cache, no-store")
+	c.Set("Pragma", "no-cache")
 	c.Set("Expires", "0")
-	return c.Render("adduser", fiber.StatusOK)
+	return c.Render("admin", fiber.Map{
+		"error": nil,
+	})
 }
+
 func AdminAddUserPost(c *fiber.Ctx) error {
 	c.Set("Cache-Control", "no-cache, no-store")
 	c.Set("Pragma", "no-cache")
@@ -101,21 +85,26 @@ func AdminAddUserPost(c *fiber.Ctx) error {
 		return c.Redirect("/", fiber.StatusOK)
 	}
 
-	userName := c.FormValue("name")
-	userEmail := c.FormValue("email")
-	userPassword := c.FormValue("password")
+	userName := c.FormValue("Name")
+	userEmail := c.FormValue("Email")
+	userPassword := c.FormValue("Password")
 
+	
 	var count int
-
 	if err := db.Db.Raw("SELECT COUNT(*) FROM users WHERE email = $1", userEmail).Scan(&count).Error; err != nil {
 		log.Fatal(err)
 		return c.Redirect("/admin", fiber.StatusFound)
 	}
 
+	
 	if count > 0 {
-		fmt.Println("User already exists")
-		return c.Render("adduser", fiber.Map{
-			"Message": "Aldready exits",
+		errors.EmailError = "User already exists"
+		return c.Render("admin", fiber.Map{
+			"title": AdminResponse{
+				Name:    "",
+				Users:   nil,
+				Invalid: errors,
+			},
 		})
 	}
 

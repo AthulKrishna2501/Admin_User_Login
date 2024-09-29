@@ -27,7 +27,6 @@ func main() {
 
 	//Admin
 	app.Get("/admin", handlers.AdminHome)
-	// app.Get("/searchUser", handlers.AdminSearchUser)
 	app.Get("/adminAddUser",handlers.AdminAddUser)
 	app.Post("/adminAddUser", handlers.AdminAddUserPost)
 	app.Get("/adminupdate", handlers.AdminUpdate)
